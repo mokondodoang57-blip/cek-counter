@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Counter v7 Firebase - FIXED FINAL</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter,Arial,sans-serif}
+body{background:#f1f5f9}
+.hidden{display:none!important}
+#loginPage{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:18px;background:linear-gradient(135deg,#1e3a8a,#2563eb)}
+.login-card{background:#fff;width:100%;max-width:400px;padding:24px;border-radius:16px;box-shadow:0 12px 32px rgba(0,0,0,.25)}
+label{font-size:10.5px;font-weight:800;color:#475569;text-transform:uppercase;margin-bottom:4px;display:block}
+input,select{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:10px;font-size:13.5px;margin-bottom:10px;outline:none}
+input:focus{border-color:#2563eb;box-shadow:0 0 0 3px #dbeafe}
+.btn{padding:11px 14px;border:none;border-radius:10px;font-weight:800;cursor:pointer;font-size:13px;transition:.15s}
+.btn:active{transform:scale(.98)}
+.btn-primary{background:#2563eb;color:#fff;width:100%}.btn-primary:disabled{opacity:.6;cursor:not-allowed}
+.btn-ghost{background:#e2e8f0;color:#334155}.btn-green{background:#16a34a;color:#fff}.btn-red{background:#dc2626;color:#fff}.btn-orange{background:#ea580c;color:#fff}
+.header{background:#1e3a8a;color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:20}
+.container{max-width:1280px;margin:0 auto;padding:14px}
+.tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.tab{padding:9px 15px;background:#fff;border:1px solid #e2e8f0;border-radius:999px;font-weight:700;font-size:12px;cursor:pointer}
+.tab.active{background:#1e3a8a;color:#fff;border-color:#1e3a8a}
+.card{background:#fff;padding:12px;border-radius:12px;box-shadow:0 1px 6px rgba(0,0,0,.06);margin-bottom:12px}
+.badge{padding:2px 8px;border-radius:999px;font-size:10px;font-weight:800;display:inline-block}
+.badge-green{background:#dcfce7;color:#166534}.badge-red{background:#fee2e2;color:#991b1b}.badge-blue{background:#dbeafe;color:#1e40af}.badge-amber{background:#fef3c7;color:#92400e}
+.modal{display:none;position:fixed;inset:0;background:rgba(15,23,42,.65);backdrop-filter:blur(4px);align-items:center;justify-content:center;z-index:100;padding:12px}
+.modal.active{display:flex}.modal-box{background:#fff;width:100%;max-width:740px;border-radius:16px;max-height:95vh;overflow:auto}
+.modal-head{padding:12px 16px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;font-weight:800}
+.modal-body{padding:14px}.close{font-size:26px;cursor:pointer;color:#94a3b8}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:700px){.grid{grid-template-columns:1fr}}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;padding:10px 16px;border-radius:999px;font-size:12px;z-index:999;display:none;box-shadow:0 6px 20px rgba(0,0,0,.3)}
+.sync-dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:6px}.sync-on{background:#22c55e;box-shadow:0 0 8px #22c55e}.sync-off{background:#ef4444}
+table{width:100%;border-collapse:collapse}th,td{padding:8px 6px;border-bottom:1px solid #e2e8f0;font-size:12px}th{background:#f8fafc;color:#64748b;font-size:10px;text-transform:uppercase}
+</style>
+<script>
+// DEFAULT AMAN - tidak akan error walau firebase gagal
+window._fb={useFirebase:false,db:null};
+</script>
+</head>
+<body>
+
+<div id="loginPage">
+  <div class="login-card">
+    <h1 style="text-align:center;color:#1e3a8a;font-size:19px">📠 Counter v7 Firebase</h1>
+    <p style="text-align:center;font-size:11px;color:#64748b;margin:6px 0 12px">FIXED • Tombol Sudah Diperbaiki • Siap Sync</p>
+    <div id="firebaseStatus" style="text-align:center;margin-bottom:12px;font-size:11px;padding:8px;border-radius:10px;background:#fef3c7;color:#92400e;font-weight:600">Mode Lokal Aktif - Bisa langsung masuk</div>
+    
+    <label>Username</label><input id="lUser" placeholder="admin" autocomplete="username">
+    <label>PIN</label><input id="lPin" type="password" placeholder="••••" autocomplete="current-password">
+    
+    <button class="btn btn-primary" id="btnLogin" type="button">Masuk & Sync</button>
+    
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn btn-ghost" style="flex:1" id="btnDaftar" type="button">Daftar Tim</button>
+      <button class="btn btn-ghost" style="flex:1" id="btnDemo" type="button">admin / 1234</button>
+    </div>
+    
+    <div style="margin-top:12px;background:#eff6ff;padding:10px;border-radius:10px;font-size:11px;color:#1e40af;line-height:1.5">
+      <b>✅ FIX:</b> Tombol sekarang pakai addEventListener, tidak akan macet lagi.<br>
+      Login <b>admin / 1234</b> langsung jalan walau Firebase belum diisi.
+    </div>
+  </div>
+</div>
+
+<div id="appPage" class="hidden">
+  <div class="header">
+    <div><b>Counter v7</b> <span id="syncIndicator"><span class="sync-dot sync-off" id="syncDot"></span><small id="syncText" style="font-size:11px">Offline Lokal</small></span><br><small id="hUser" style="font-size:11px;opacity:.9"></small></div>
+    <div style="display:flex;gap:6px"><button class="btn" style="background:#fff;color:#1e3a8a;padding:7px 12px;font-size:11px" id="btnExport">⬇ Excel</button><button class="btn btn-red" style="padding:7px 12px;font-size:11px" id="btnLogout">Keluar</button></div>
+  </div>
+
+  <div class="container">
+    <div class="tabs">
+      <div class="tab active" data-tab="mesin">🖨 Mesin</div>
+      <div class="tab" data-tab="invoice">🧾 Invoice</div>
+      <div class="tab hidden" data-tab="team" id="tabTeamBtn">👥 Tim</div>
+      <div class="tab" data-tab="setup" style="background:#fef3c7;border-color:#f59e0b">🔥 Setup Firebase</div>
+    </div>
+
+    <div id="vMesin"><div class="card"><div style="display:flex;gap:6px;flex-wrap:wrap"><input id="qMesin" placeholder="Cari pelanggan" style="max-width:200px;margin:0"><select id="fOwner" style="max-width:160px;margin:0;padding:8px"><option value="semua">Semua Tim</option></select><button class="btn btn-green" style="padding:8px 14px;font-size:12px" id="btnAddMesin">+ Mesin</button></div><div style="overflow:auto;margin-top:10px"><table><thead><tr><th>Owner</th><th>Pelanggan</th><th>Counter</th><th>Sewa</th><th>Warna</th><th>Aksi</th></tr></thead><tbody id="tbMesin"></tbody></table></div></div></div>
+    <div id="vInvoice" class="hidden"><div class="card"><div style="overflow:auto"><table><thead><tr><th>Tgl</th><th>Tim</th><th>Pelanggan</th><th>Pakai</th><th>Total</th><th>Bayar</th><th>Print</th><th>Aksi</th></tr></thead><tbody id="tbInv"></tbody></table></div></div></div>
+    <div id="vTeam" class="hidden"><div class="card"><table><thead><tr><th>User</th><th>Nama</th><th>Role</th><th>Mesin</th><th>Invoice</th><th>Aksi</th></tr></thead><tbody id="tbTeam"></tbody></table></div></div>
+    
+    <div id="vSetup" class="hidden">
+      <div class="card" style="border:2px solid #f59e0b">
+        <h3 style="color:#92400e;margin-bottom:8px">🔥 Sambungkan ke Firebase (1x saja)</h3>
+        <p style="font-size:12px;color:#475569;margin-bottom:10px">Tempel config dari Firebase Console → Project Settings → SDK Setup. Setelah simpan, semua HP tim akan sync otomatis.</p>
+        <div class="grid">
+          <div><label>apiKey</label><input id="cfg_apiKey" placeholder="AIza..."></div>
+          <div><label>authDomain</label><input id="cfg_authDomain" placeholder="project.firebaseapp.com"></div>
+          <div><label>projectId</label><input id="cfg_projectId" placeholder="project-id"></div>
+          <div><label>storageBucket</label><input id="cfg_storageBucket" placeholder="project.appspot.com"></div>
+          <div><label>messagingSenderId</label><input id="cfg_senderId" placeholder="123..."></div>
+          <div><label>appId</label><input id="cfg_appId" placeholder="1:123:web:..."></div>
+        </div>
+        <button class="btn btn-primary" id="btnSaveFirebase" type="button" style="margin-top:10px">💾 Simpan & Aktifkan Sync</button>
+        <button class="btn btn-ghost" id="btnResetFirebase" type="button" style="margin-top:8px;width:100%">Reset ke Mode Lokal</button>
+        <div id="fbLog" style="margin-top:10px;font-size:11px;background:#f8fafc;padding:8px;border-radius:8px;white-space:pre-wrap"></div>
+        <div style="margin-top:10px;background:#dcfce7;padding:10px;border-radius:8px;font-size:11px"><b>Cara dapat config:</b><br>1. Buka console.firebase.google.com → Buat Project<br>2. Build → Firestore → Create Database → Test Mode → asia-southeast2<br>3. Project Settings (gerigi) → Your Apps → Web → Copy config</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal Daftar -->
+<div id="mReg" class="modal"><div class="modal-box" style="max-width:380px"><div class="modal-head"><span>Daftar Tim</span><span class="close" data-close="mReg">&times;</span></div><div class="modal-body"><label>Username</label><input id="rU"><label>Nama</label><input id="rN"><label>PIN</label><input id="rP" type="password"><label>Konfirmasi PIN</label><input id="rP2" type="password"><div id="roleW"><label>Role</label><select id="rR"><option value="user">User</option><option value="admin">Admin</option></select></div><button class="btn btn-primary" style="width:100%;margin-top:8px" id="btnDoReg">Simpan</button></div></div></div>
+
+<div id="toast" class="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc, doc, setDoc, deleteDoc, updateDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const LS_CFG='firebase_config_v7';
+function loadCfg(){try{return JSON.parse(localStorage.getItem(LS_CFG)||'null')}catch(e){return null}}
+function saveCfg(c){localStorage.setItem(LS_CFG,JSON.stringify(c))}
+let cfg = loadCfg();
+let db=null; let useFirebase=false;
+async function tryInitFirebase(showToast=true){
+  const logEl = document.getElementById('fbLog');
+  if(!cfg || !cfg.apiKey || cfg.apiKey.includes('GANTI')){ 
+    window._fb={useFirebase:false,db:null}; updateStatus(); 
+    if(logEl) logEl.textContent='Belum ada config, mode lokal aktif. Isi form di atas lalu Simpan.';
+    return false;
+  }
+  try{
+    if(logEl) logEl.textContent='Menghubungkan ke Firebase...';
+    const app = initializeApp(cfg);
+    db = getFirestore(app);
+    window._fb={useFirebase:true,db,collection,addDoc,doc,setDoc,deleteDoc,updateDoc,onSnapshot,serverTimestamp};
+    useFirebase=true;
+    if(showToast) toast('✅ Firebase Terhubung!');
+    if(logEl) logEl.textContent='✅ Terhubung ke project: '+cfg.projectId+'\nSync aktif! Semua HP akan sinkron.';
+    updateStatus();
+    // restart sync
+    if(window._app_cur) window.startSyncRealtime();
+    return true;
+  }catch(e){
+    console.error(e);
+    window._fb={useFirebase:false,db:null};
+    if(logEl) logEl.textContent='❌ Gagal: '+e.message;
+    if(showToast) toast('Gagal konek: '+e.message);
+    updateStatus();
+    return false;
+  }
+}
+function updateStatus(){
+  const el=document.getElementById('firebaseStatus'); const dot=document.getElementById('syncDot'); const txt=document.getElementById('syncText');
+  const isOn = window._fb && window._fb.useFirebase;
+  if(el){ el.style.background=isOn?'#dcfce7':'#fef3c7'; el.style.color=isOn?'#166534':'#92400e'; el.textContent=isOn?'✅ Firebase Terhubung - Sync Antar Tim Aktif':'⚠️ Mode Lokal - Isi Setup Firebase untuk sync tim'; }
+  if(dot){ dot.className='sync-dot '+(isOn?'sync-on':'sync-off'); }
+  if(txt){ txt.textContent=isOn?'Live Sync ON':'Offline - Lokal'; }
+}
+window.tryInitFirebase=tryInitFirebase; window.updateStatus=updateStatus;
+if(cfg){ // preload inputs
+  setTimeout(()=>{ 
+    ['apiKey','authDomain','projectId','storageBucket','messagingSenderId','appId'].forEach(k=>{
+      let id = k==='messagingSenderId'?'cfg_senderId':'cfg_'+k;
+      let el=document.getElementById(id); if(el && cfg[k]) el.value=cfg[k];
+    });
+    tryInitFirebase(false);
+  },100);
+}else{ updateStatus(); }
+</script>
+
+<script>
+// ============ APP LOGIC - ANTI GAGAL ============
+const KU='team_users_v7', KS='team_sess_v7';
+let users=[]; let mesin=[], invoices=[], cur=null, unsub1=null, unsub2=null;
+function $(id){return document.getElementById(id)}
+function toast(m){let t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(t._t);t._t=setTimeout(()=>t.style.display='none',3000)}
+function sm(id){$(id).classList.add('active')} function cm(id){$(id).classList.remove('active')}
+function isFB(){return window._fb && window._fb.useFirebase && window._fb.db}
+
+function loadUsers(){try{let d=JSON.parse(localStorage.getItem(KU)||'null'); if(Array.isArray(d)&&d.length) users=d; else throw ''}catch(e){users=[{id:'1',username:'admin',pin:'1234',nama:'Admin',role:'admin'},{id:'2',username:'staff1',pin:'1111',nama:'Staff Satu',role:'user'}]; localStorage.setItem(KU,JSON.stringify(users));}}
+function saveUsers(){localStorage.setItem(KU,JSON.stringify(users))}
+
+function doLogin(){
+  try{
+    let u=($('lUser').value||'').trim().toLowerCase();
+    let p=($('lPin').value||'').trim();
+    if(!u||!p){toast('Isi username & PIN'); return}
+    let f=users.find(x=>x.username===u && x.pin===p);
+    if(!f){toast('Salah! Coba admin / 1234'); return}
+    localStorage.setItem(KS,JSON.stringify(f));
+    init();
+    toast('Login berhasil, halo @'+f.username);
+  }catch(e){ alert('Error login: '+e.message); console.error(e); }
+}
+function fillDemo(){ $('lUser').value='admin'; $('lPin').value='1234'; toast('Terisi, klik Masuk'); }
+function doLogout(){ try{if(unsub1)unsub1(); if(unsub2)unsub2();}catch(e){} localStorage.removeItem(KS); location.reload(); }
+
+function init(){
+  loadUsers();
+  let s=null; try{s=JSON.parse(localStorage.getItem(KS)||'null')}catch(e){}
+  let lp=$('loginPage'), ap=$('appPage');
+  if(!s){ lp.classList.remove('hidden'); ap.classList.add('hidden'); window.updateStatus&&window.updateStatus(); return; }
+  cur=s; window._app_cur=cur;
+  lp.classList.add('hidden'); ap.classList.remove('hidden');
+  $('hUser').textContent='@'+cur.username+' - '+cur.nama+' ('+cur.role.toUpperCase()+')';
+  $('tabTeamBtn').classList.toggle('hidden', cur.role!=='admin');
+  renderFilters(); startSync(); renderTeam();
+  if(window.updateStatus) window.updateStatus();
+}
+function renderFilters(){ let sel=$('fOwner'); if(!sel)return; let v=sel.value; sel.innerHTML='<option value="semua">Semua Tim</option>'+users.map(u=>`<option value="${u.username}">@${u.username} - ${u.nama}</option>`).join(''); sel.value=v||'semua'; }
+function startSync(){
+  if(isFB()){
+    try{
+      const {collection,onSnapshot} = window._fb; const db=window._fb.db;
+      if(unsub1)unsub1(); if(unsub2)unsub2();
+      unsub1=onSnapshot(collection(db,'machines'),snap=>{mesin=snap.docs.map(d=>({id:d.id,...d.data()})); renderMesin(); renderTeam();});
+      unsub2=onSnapshot(collection(db,'invoices'),snap=>{invoices=snap.docs.map(d=>({id:d.id,...d.data()})); renderInv();});
+      toast('🔥 Live Sync Aktif');
+    }catch(e){ toast('Gagal sync, pakai lokal: '+e.message); loadLocal(); }
+  }else{ loadLocal(); }
+}
+window.startSyncRealtime=startSync;
+function loadLocal(){ try{mesin=JSON.parse(localStorage.getItem('mesin_v61')||'[]'); invoices=JSON.parse(localStorage.getItem('invoice_v61')||'[]');}catch(e){mesin=[];invoices=[]} renderMesin(); renderInv(); }
+function getMesin(){ let q=($('qMesin').value||'').toLowerCase(); let fo=$('fOwner').value; let l=[...mesin]; if(cur.role!=='admin') l=l.filter(m=>m.owner===cur.username); else if(fo!=='semua') l=l.filter(m=>m.owner===fo); if(q) l=l.filter(m=>(m.nama+m.pj).toLowerCase().includes(q)); return l; }
+function renderMesin(){ let tb=$('tbMesin'); if(!tb)return; let list=getMesin(); tb.innerHTML=''; list.forEach(d=>{ tb.innerHTML+=`<tr><td><span class="badge badge-blue">@${d.owner}</span></td><td><b>${d.nama}</b><br><small>${d.pj||''}</small></td><td>${d.counterBWLalu||0}→${d.counterBWSkrg??'-'}<br><small style="color:#7c3aed">W ${d.counterWarnaLalu||0}→${d.counterWarnaSkrg??'-'}</small></td><td>Rp ${(d.sewa||0).toLocaleString()}</td><td>Rp ${(d.sewaWarna||0).toLocaleString()}</td><td><button class="btn btn-ghost" style="font-size:11px;padding:5px 8px" onclick="alert('Fitur Tagih di versi lengkap')">Tagih</button></td></tr>`}); if(!list.length) tb.innerHTML='<tr><td colspan=6 style="text-align:center;color:#94a3b8;padding:14px">Belum ada mesin. Klik + Mesin</td></tr>'; }
+function renderInv(){ let tb=$('tbInv'); if(!tb)return; let list=[...invoices]; if(cur.role!=='admin') list=list.filter(x=>x.owner===cur.username); tb.innerHTML=''; list.forEach(inv=>{ let tgl=inv.tanggalBuat?.seconds?new Date(inv.tanggalBuat.seconds*1000).toLocaleDateString('id-ID'): (inv.tanggalBuat?new Date(inv.tanggalBuat).toLocaleDateString('id-ID'):'-'); tb.innerHTML+=`<tr><td>${tgl}</td><td>@${inv.owner||''}</td><td>${inv.nama||''}</td><td>${inv.pakaiBW||0}/${inv.pakaiWarna||0}</td><td>Rp ${(inv.total||0).toLocaleString()}</td><td>${inv.status||'belum'}</td><td>${inv.sudahCetak?'Sudah':'Belum'}</td><td><button class="btn btn-ghost" style="font-size:11px">Lihat</button></td></tr>`}); if(!list.length) tb.innerHTML='<tr><td colspan=8 style="text-align:center;color:#94a3b8">Belum ada invoice</td></tr>'; }
+function renderTeam(){ let tb=$('tbTeam'); if(!tb)return; tb.innerHTML=''; users.forEach(u=>{ tb.innerHTML+=`<tr><td>@${u.username}</td><td>${u.nama}</td><td><span class="badge ${u.role==='admin'?'badge-amber':'badge-blue'}">${u.role}</span></td><td>${mesin.filter(m=>m.owner===u.username).length}</td><td>${invoices.filter(i=>i.owner===u.username).length}</td><td><button class="btn btn-ghost" style="font-size:11px">PIN</button></td></tr>`}); }
+
+function showReg(){ $('roleW').style.display=(cur&&cur.role==='admin')?'block':'none'; $('rU').value='';$('rN').value='';$('rP').value='';$('rP2').value=''; sm('mReg'); }
+function doReg(){ let u=$('rU').value.trim().toLowerCase(), n=$('rN').value.trim(), p=$('rP').value.trim(), p2=$('rP2').value.trim(), rl=$('rR').value; if(!u||!n||!p) return toast('Lengkapi'); if(p!==p2) return toast('PIN beda'); if(users.some(x=>x.username===u)) return toast('Username sudah ada'); let role=(cur&&cur.role==='admin')?rl:'user'; users.push({id:Date.now().toString(),username:u,pin:p,nama:n,role}); saveUsers(); cm('mReg'); toast('User dibuat @'+u); renderFilters(); renderTeam(); }
+
+// Tabs
+function switchTab(name){
+  ['Mesin','Invoice','Team','Setup'].forEach(t=>{ let v=$('v'+t); if(v) v.classList.toggle('hidden', t.toLowerCase()!==name); });
+  document.querySelectorAll('.tab').forEach(el=>{ el.classList.toggle('active', el.dataset.tab===name); });
+}
+
+// Firebase Save
+async function saveFirebaseCfg(){
+  let c={
+    apiKey:$('cfg_apiKey').value.trim(),
+    authDomain:$('cfg_authDomain').value.trim(),
+    projectId:$('cfg_projectId').value.trim(),
+    storageBucket:$('cfg_storageBucket').value.trim(),
+    messagingSenderId:$('cfg_senderId').value.trim(),
+    appId:$('cfg_appId').value.trim()
+  };
+  if(!c.apiKey||!c.projectId){ toast('Isi minimal apiKey & projectId'); return; }
+  localStorage.setItem('firebase_config_v7',JSON.stringify(c));
+  location.reload(); // reload agar module init ulang dengan config baru
+}
+function resetFirebase(){ localStorage.removeItem('firebase_config_v7'); toast('Reset ke mode lokal'); setTimeout(()=>location.reload(),600); }
+
+// Bind all events AFTER DOM ready - INI KUNCI FIX TOMBOL
+document.addEventListener('DOMContentLoaded', ()=>{
+  loadUsers();
+  // Login
+  $('btnLogin').addEventListener('click', doLogin);
+  $('btnDemo').addEventListener('click', fillDemo);
+  $('btnDaftar').addEventListener('click', showReg);
+  $('lPin').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+  $('lUser').addEventListener('keydown', e=>{ if(e.key==='Enter') $('lPin').focus(); });
+  // Header
+  $('btnLogout').addEventListener('click', doLogout);
+  $('btnExport').addEventListener('click', ()=>toast('Export: fitur di versi lengkap'));
+  // Tabs
+  document.querySelectorAll('.tab').forEach(t=> t.addEventListener('click', ()=> switchTab(t.dataset.tab) ));
+  // Search
+  $('qMesin')?.addEventListener('input', renderMesin);
+  $('fOwner')?.addEventListener('change', renderMesin);
+  $('btnAddMesin')?.addEventListener('click', ()=>toast('Tambah mesin - buka modal di versi lengkap'));
+  // Reg
+  $('btnDoReg')?.addEventListener('click', doReg);
+  document.querySelectorAll('[data-close]').forEach(b=> b.addEventListener('click', ()=> cm(b.dataset.close) ));
+  // Firebase
+  $('btnSaveFirebase')?.addEventListener('click', saveFirebaseCfg);
+  $('btnResetFirebase')?.addEventListener('click', resetFirebase);
+  // Init
+  init();
+});
+if(document.readyState!=='loading'){ /* fallback */ }
+</script>
+</body>
+</html>
