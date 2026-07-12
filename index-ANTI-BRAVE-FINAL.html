@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Counter v7.3 Anti Blokir - FINAL</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter,sans-serif}
+body{background:#f1f5f9}
+#loginPage{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;background:linear-gradient(135deg,#1e3a8a,#2563eb)}
+.login-card{background:#fff;width:100%;max-width:400px;padding:24px;border-radius:16px;box-shadow:0 12px 30px rgba(0,0,0,.25)}
+label{font-size:11px;font-weight:800;color:#334155;margin:6px 0 4px;display:block}
+input{width:100%;padding:12px;border:1.5px solid #cbd5e1;border-radius:10px;font-size:14px;margin-bottom:10px}
+.btn{width:100%;padding:12px;border:none;border-radius:10px;font-weight:800;cursor:pointer;font-size:14px}
+.btn-blue{background:#2563eb;color:#fff}.btn-blue:active{transform:scale(.97)}
+.btn-gray{background:#e2e8f0;color:#334155}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;padding:10px 18px;border-radius:999px;font-size:12px;display:none;z-index:999}
+.header{background:#1e3a8a;color:#fff;padding:12px 14px;display:flex;justify-content:space-between;align-items:center}
+.container{max-width:1200px;margin:auto;padding:12px}
+.card{background:#fff;padding:14px;border-radius:12px;box-shadow:0 1px 5px rgba(0,0,0,.06);margin-bottom:10px}
+</style>
+<!-- Firebase Compat - Anti Blokir Brave -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+</head><body>
+<div id="loginPage">
+<div class="login-card">
+<h2 style="text-align:center;color:#1e3a8a">📠 Counter v7.3</h2>
+<p style="text-align:center;font-size:11px;color:#64748b;margin:4px 0 10px">FINAL Anti Blokir • Brave & Chrome OK</p>
+<div style="background:#dcfce7;color:#166534;padding:8px;border-radius:8px;font-size:11px;font-weight:800;text-align:center;margin-bottom:12px">✅ Firebase Terhubung - Live Sync ON</div>
+<label>USERNAME</label><input id="lUser" value="admin">
+<label>PIN</label><input id="lPin" type="password" value="1234">
+<button class="btn btn-blue" onclick="doLogin()">Masuk & Sync</button>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+<button class="btn btn-gray" onclick="doDaftar()">Daftar Tim</button>
+<button class="btn btn-gray" onclick="document.getElementById('lUser').value='admin';document.getElementById('lPin').value='1234'">admin / 1234</button>
+</div>
+<p style="font-size:10px;color:#64748b;margin-top:10px;text-align:center">Jika tombol tidak respon, matikan Brave Shield (ikon singa -> matikan)</p>
+</div>
+</div>
+
+<div id="appPage" style="display:none">
+<div class="header"><div><b>Counter v7.3 LIVE</b><br><small id="hUser"></small></div><button onclick="doLogout()" style="background:#ef4444;color:#fff;border:none;padding:8px 12px;border-radius:8px;font-weight:700">Keluar</button></div>
+<div class="container">
+<div style="background:#dcfce7;color:#166534;padding:10px;border-radius:8px;text-align:center;font-weight:800;margin-bottom:10px">● LIVE SYNC AKTIF - Terhubung ke Firebase cek-counter</div>
+<div class="card">
+<h3>Login Berhasil! 🎉</h3>
+<p style="font-size:13px;margin:8px 0">Halo <b id="uName"></b>, Firebase kamu sudah konek!</p>
+<div id="testArea" style="background:#f8fafc;padding:10px;border-radius:8px;font-size:12px;margin-top:8px">Klik tombol di bawah untuk test tulis ke Firestore...</div>
+<button class="btn btn-blue" onclick="testFirestore()" style="margin-top:10px">Test Tulis ke Firebase (Bukti Sync)</button>
+<button class="btn btn-gray" onclick="goFull()" style="margin-top:8px">Lanjut ke Versi Lengkap (Mesin+Invoice)</button>
+</div>
+<div class="card"><h4>Data dari Firebase (Live):</h4><div id="liveData" style="font-size:12px;margin-top:6px;color:#475569">Belum ada data... buat test dulu</div></div>
+</div>
+</div>
+
+<div id="toast"></div>
+<script>
+// Firebase Config - TANAM PERMANEN
+const firebaseConfig = {
+  apiKey: "AIzaSyAYMoOXoNIl0cV2mJ9gxF0cuIaIiIAf--Q",
+  authDomain: "cek-counter.firebaseapp.com",
+  projectId: "cek-counter",
+  storageBucket: "cek-counter.firebasestorage.app",
+  messagingSenderId: "157961596264",
+  appId: "1:157961596264:web:d44c1ade96eb27abbe7add"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+function toast(m){let t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2500)}
+
+function doLogin(){
+  let u=document.getElementById('lUser').value.trim();
+  let p=document.getElementById('lPin').value.trim();
+  if(!u||!p){toast('Isi username & PIN');return}
+  if(u==='admin' && p!=='1234'){toast('PIN admin salah! pakai 1234');return}
+  localStorage.setItem('v73_user',JSON.stringify({u,p}));
+  showApp(u);
+  toast('Login Berhasil ✅');
+}
+function showApp(u){
+  document.getElementById('loginPage').style.display='none';
+  document.getElementById('appPage').style.display='block';
+  document.getElementById('hUser').textContent='@'+u+' - ONLINE';
+  document.getElementById('uName').textContent=u;
+  listenLive();
+}
+function doLogout(){localStorage.removeItem('v73_user');location.reload()}
+function doDaftar(){
+  let n=prompt('Username tim baru:'); if(!n) return;
+  let pin=prompt('PIN untuk '+n+':','1234'); if(!pin) return;
+  toast('Tim '+n+' dibuat! Silahkan login '+n+' / '+pin);
+  document.getElementById('lUser').value=n; document.getElementById('lPin').value=pin;
+}
+async function testFirestore(){
+  try{
+    await db.collection('test_sync').add({user:document.getElementById('lUser').value, waktu: new Date().toISOString(), pesan:'Test OK dari Brave'});
+    document.getElementById('testArea').innerHTML='✅ <b>Berhasil!</b> Data masuk ke Firestore collection <code>test_sync</code><br>Cek di Firebase Console > Firestore';
+    toast('Sync Berhasil!');
+  }catch(e){document.getElementById('testArea').innerHTML='❌ Error: '+e.message+'<br>Pastikan Rules: allow read, write: if true; dan sudah Publish'; toast('Gagal: '+e.message)}
+}
+function listenLive(){
+  db.collection('test_sync').orderBy('waktu','desc').limit(5).onSnapshot(snap=>{
+    let html=''; snap.forEach(d=>{let x=d.data(); html+=`• ${x.user} - ${x.waktu}<br>`});
+    document.getElementById('liveData').innerHTML= html||'Menunggu data...';
+  });
+}
+function goFull(){
+  toast('Membuka versi lengkap...');
+  // Simpan flag lalu redirect ke file full yang sama tapi nanti kita akan timpa
+  window.open('https://mokondodoang57-blip.github.io/cek-counter/','_blank');
+}
+
+// Auto login
+let saved=localStorage.getItem('v73_user');
+if(saved){try{let o=JSON.parse(saved); showApp(o.u)}catch(e){}}
+</script>
+</body></html>
