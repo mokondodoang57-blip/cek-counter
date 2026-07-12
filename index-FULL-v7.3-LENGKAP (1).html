@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Counter v7.0 Firebase Team Sync</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter,Arial,sans-serif}
+body{background:#f1f5f9;color:#0f172a}
+.hidden{display:none!important}
+#loginPage{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:18px;background:linear-gradient(135deg,#1e3a8a,#2563eb)}
+.login-card{background:#fff;width:100%;max-width:400px;padding:24px;border-radius:16px;box-shadow:0 12px 32px rgba(0,0,0,.25)}
+label{font-size:10.5px;font-weight:800;color:#475569;text-transform:uppercase;margin-bottom:4px;display:block}
+input,select{width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:9px;font-size:13.5px;margin-bottom:10px}
+.btn{padding:10px 14px;border:none;border-radius:9px;font-weight:700;cursor:pointer;font-size:12.5px}
+.btn-primary{background:#2563eb;color:#fff;width:100%}.btn-green{background:#16a34a;color:#fff}.btn-red{background:#dc2626;color:#fff}.btn-ghost{background:#e2e8f0;color:#334155}.btn-orange{background:#ea580c;color:#fff}.btn-sm{padding:6px 10px;font-size:11.5px}
+.header{background:#1e3a8a;color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10}
+.container{max-width:1280px;margin:0 auto;padding:14px}
+.tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.tab{padding:8px 14px;background:#fff;border:1px solid #e2e8f0;border-radius:999px;font-weight:700;font-size:11.5px;cursor:pointer}
+.tab.active{background:#1e3a8a;color:#fff;border-color:#1e3a8a}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:12px}
+.stat{background:#fff;padding:10px;border-radius:12px;border-left:4px solid #2563eb;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.stat p{font-size:17px;font-weight:800}
+.card{background:#fff;padding:12px;border-radius:12px;box-shadow:0 1px 6px rgba(0,0,0,.06);margin-bottom:12px}
+table{width:100%;border-collapse:collapse}th,td{padding:7px 6px;border-bottom:1px solid #e2e8f0;font-size:11.5px;vertical-align:top}
+th{background:#f8fafc;color:#64748b;font-size:9px;text-transform:uppercase}
+.badge{padding:2px 7px;border-radius:999px;font-size:9.5px;font-weight:800;display:inline-block}
+.badge-green{background:#dcfce7;color:#166534}.badge-red{background:#fee2e2;color:#991b1b}.badge-blue{background:#dbeafe;color:#1e40af}.badge-purple{background:#ede9fe;color:#6d28d9}.badge-amber{background:#fef3c7;color:#92400e}.badge-gray{background:#f1f5f9;color:#475569}
+.modal{display:none;position:fixed;inset:0;background:rgba(15,23,42,.6);backdrop-filter:blur(3px);align-items:center;justify-content:center;z-index:100;padding:10px}
+.modal.active{display:flex}.modal-box{background:#fff;width:100%;max-width:720px;border-radius:14px;max-height:94vh;overflow:auto}
+.modal-head{padding:10px 14px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center}
+.modal-body{padding:12px}.close{font-size:24px;cursor:pointer;color:#94a3b8}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}@media(max-width:700px){.grid{grid-template-columns:1fr}}
+.toast{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;padding:8px 14px;border-radius:999px;font-size:11px;z-index:300;display:none}
+.section-title{font-size:11px;font-weight:800;color:#1e3a8a;margin:10px 0 6px;padding:6px 8px;background:#eff6ff;border-radius:6px;border-left:3px solid #2563eb}
+.sync-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px}.sync-on{background:#22c55e;box-shadow:0 0 6px #22c55e}.sync-off{background:#ef4444}
+</style>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyAYMoOXoNIl0cV2mJ9gxF0cuIaIiIAf--Q",
+  authDomain: "cek-counter.firebaseapp.com",
+  projectId: "cek-counter",
+  storageBucket: "cek-counter.firebasestorage.app",
+  messagingSenderId: "157961596264",
+  appId: "1:157961596264:web:d44c1ade96eb27abbe7add"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+let useFirebase = true;
+function isFB(){return true}
+function toast(m){let t=document.getElementById('toast'); if(!t){t=document.createElement('div');t.id='toast';t.style.cssText='position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;padding:10px 16px;border-radius:999px;font-size:12px;z-index:999';document.body.appendChild(t)} t.textContent=m; t.style.display='block'; setTimeout(()=>t.style.display='none',2500)}
+</script>
+
+<style>#loginPage{display:flex!important}</style></head><body>
+<div id="loginPage">
+<div class="login-card">
+<h1 style="text-align:center;color:#1e3a8a;font-size:18px">📠 Counter v7 Firebase</h1>
+<p style="text-align:center;font-size:10.5px;color:#64748b;margin:6px 0 10px">Sync Real-Time Antar Tim • Color & Print</p>
+<div id="firebaseStatus" style="background:#dcfce7!important;color:#166534!important;font-weight:800" style="text-align:center;margin-bottom:10px;font-size:10.5px;padding:6px;border-radius:8px;background:#fef3c7;color:#92400e">⚠️ Firebase belum dikonfigurasi - masih mode lokal</div>
+<label>Username</label><input id="lUser" placeholder="admin">
+<label>PIN</label><input id="lPin" type="password" placeholder="••••">
+<button class="btn btn-primary" onclick="doLogin()">Masuk & Sync</button>
+<div style="display:flex;gap:6px;margin-top:8px"><button class="btn btn-ghost" style="flex:1" onclick="showReg(false)">Daftar Tim</button><button class="btn btn-ghost" style="flex:1" onclick="fillDemo()">admin / 1234</button></div>
+<div style="margin-top:10px;background:#f0fdf4;padding:8px;border-radius:8px;font-size:10px;color:#166534"><b>Cara Aktifkan Sync:</b> 1) Buat project di firebase.google.com (gratis) 2) Aktifkan Firestore 3) Copy config paste di file index.html baris 24-31. Lihat panduan di bawah aplikasi.</div>
+</div></div>
+
+<div id="appPage" class="hidden">
+<div class="header"><div><b>Counter v7 Firebase</b> <span id="syncIndicator"><span class="sync-dot sync-off"></span><small id="syncText" style="font-size:10px">Offline</small></span><br><small id="hUser" style="font-size:10.5px;opacity:.9"></small></div><div style="display:flex;gap:5px"><button class="btn btn-sm" style="background:#fff;color:#1e3a8a" onclick="exportCSV()">⬇ Excel</button><button class="btn btn-sm btn-red" onclick="doLogout()">Keluar</button></div></div>
+<div class="container">
+<div class="tabs"><div class="tab active" id="tMesin" onclick="sw('mesin')">🖨 Mesin</div><div class="tab" id="tInv" onclick="sw('invoice')">🧾 Invoice</div><div class="tab hidden" id="tTeam" onclick="sw('team')">👥 Tim</div><div class="tab" onclick="showFirebaseHelp()">🔥 Setup</div></div>
+
+<div id="vMesin"><div class="stats"><div class="stat"><p id="sMesin">0</p><span style="font-size:9px;color:#64748b">Total Mesin (Sync)</span></div><div class="stat" style="border-color:#16a34a"><p id="sPakai">0</p><span style="font-size:9px;color:#64748b">Pakai BW+Warna</span></div><div class="stat" style="border-color:#ea580c"><p id="sTagih">Rp 0</p><span style="font-size:9px;color:#64748b">Belum Lunas (Semua Tim)</span></div><div class="stat" style="border-color:#7c3aed"><p id="sLive">Live</p><span style="font-size:9px;color:#64748b">Status Sync</span></div></div>
+<div class="card"><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px"><input id="qMesin" placeholder="Cari pelanggan" style="max-width:180px;margin:0" oninput="renderMesin()"><select id="fOwner" onchange="renderMesin()" style="max-width:150px;margin:0;padding:6px"><option value="semua">Semua Tim</option></select><button class="btn btn-green btn-sm" onclick="openForm()">+ Mesin</button></div><div style="overflow:auto"><table><thead><tr><th>Owner</th><th>Pelanggan</th><th>BW / Warna</th><th>Biaya BW</th><th>Biaya Warna</th><th>Aksi</th></tr></thead><tbody id="tbMesin"></tbody></table></div></div></div>
+
+<div id="vInvoice" class="hidden"><div class="card"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:8px"><b style="font-size:11px;color:#1e3a8a">Invoice Real-Time - Print & Warna</b><div style="display:flex;gap:4px"><select id="fStatus" onchange="renderInv()" style="width:110px;margin:0;padding:5px"><option value="semua">Semua</option><option value="belum">Belum</option><option value="lunas">Lunas</option></select><select id="fPrint" onchange="renderInv()" style="width:120px;margin:0;padding:5px"><option value="semua">Print Semua</option><option value="belum_cetak">Belum Cetak</option><option value="sudah_cetak">Sudah Cetak</option></select><select id="fOwnerInv" onchange="renderInv()" style="width:120px;margin:0;padding:5px"><option value="semua">Semua Tim</option></select></div></div><div style="overflow:auto"><table><thead><tr><th>Tgl</th><th>Tim</th><th>Pelanggan</th><th>BW/Warna</th><th>Total</th><th>Bayar</th><th>Print</th><th>Aksi</th></tr></thead><tbody id="tbInv"></tbody></table></div></div></div>
+
+<div id="vTeam" class="hidden"><div class="card"><div style="display:flex;justify-content:space-between;margin-bottom:8px"><b style="font-size:11px;color:#1e3a8a">Kelola Tim</b><button class="btn btn-primary btn-sm" onclick="showReg(true)">+ User</button></div><div style="overflow:auto"><table><thead><tr><th>User</th><th>Nama</th><th>Role</th><th>Mesin</th><th>Invoice</th><th>Tagihan</th><th>Aksi</th></tr></thead><tbody id="tbTeam"></tbody></table></div></div></div>
+</div></div>
+
+<!-- Modals same as before -->
+<div id="mForm" class="modal"><div class="modal-box"><div class="modal-head"><h3 id="formTitle">Tambah Mesin</h3><span class="close" onclick="cm('mForm')">&times;</span></div><div class="modal-body">
+<div class="grid"><div><label>Nama Pelanggan *</label><input id="fNama"></div><div><label>Telp *</label><input id="fTelp"></div><div><label>PJ *</label><input id="fPJ"></div><div><label>Alamat</label><input id="fAlamat"></div><div><label>Tipe</label><input id="fTipe"></div><div><label>SN</label><input id="fSN"></div></div>
+<div class="section-title">BW</div><div class="grid"><div><label>BW Lalu</label><input id="fBWLalu" type="number"></div><div><label>BW Skrg</label><input id="fBWSkrg" type="number"></div><div><label>Sewa BW</label><input id="fSewa" type="number" value="500000"></div><div><label>Free BW</label><input id="fKuota" type="number" value="2000"></div><div><label>Lebih BW</label><input id="fLebih" type="number" value="250"></div></div>
+<div class="section-title" style="background:#f5f3ff;border-color:#7c3aed;color:#6d28d9">Warna - Sewa, Free, Lebih Copy & Print Warna</div><div class="grid"><div><label>Warna Lalu</label><input id="fWarnaLalu" type="number" value="0"></div><div><label>Warna Skrg</label><input id="fWarnaSkrg" type="number" value="0"></div><div><label>Sewa Warna</label><input id="fSewaW" type="number" value="0"></div><div><label>Free Warna</label><input id="fKuotaW" type="number" value="0"></div><div><label>Lebih Copy Warna</label><input id="fLebihW" type="number" value="500"></div><div><label>Lebih Print Warna</label><input id="fLebihPrintW" type="number" value="600"></div></div>
+<div class="section-title">PPN & Rek</div><div class="grid"><div><label>Pakai PPN?</label><select id="fPPNpakai"><option value="tidak">Tidak</option><option value="ya">Ya</option></select></div><div><label>PPN %</label><input id="fPPN" type="number" value="11"></div><div><label>Bank</label><input id="fBank"></div><div><label>No Rek</label><input id="fNoRek"></div><div><label>A/N</label><input id="fAN"></div></div>
+<button class="btn btn-primary" style="width:100%;margin-top:10px" onclick="saveForm()">Simpan & Sync ke Tim</button><input type="hidden" id="fId"></div></div></div>
+
+<div id="mCek" class="modal"><div class="modal-box"><div class="modal-head"><h3>Buat Tagihan</h3><span class="close" onclick="cm('mCek')">&times;</span></div><div class="modal-body">
+<p id="cekInfo" style="font-size:11px;color:#64748b;margin-bottom:6px"></p>
+<div class="grid"><div><label>BW Lalu</label><input id="cBWLalu" type="number"></div><div><label>BW Skrg *</label><input id="cBWSkrg" type="number"></div><div><label>Warna Lalu</label><input id="cWLalu" type="number"></div><div><label>Warna Skrg *</label><input id="cWSkrg" type="number"></div></div>
+<div id="prev" style="display:none;margin-top:8px;background:#f8fafc;padding:8px;border-radius:8px;font-size:11px"></div>
+<button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="makeInv()">Buat Invoice & Sync</button>
+</div></div></div>
+
+<div id="mDetail" class="modal"><div class="modal-box"><div class="modal-head"><h3>Detail Invoice</h3><span class="close" onclick="cm('mDetail')">&times;</span></div><div class="modal-body" id="detailBox"></div></div></div>
+
+<div id="mReg" class="modal"><div class="modal-box" style="max-width:380px"><div class="modal-head"><h3>Tambah Tim</h3><span class="close" onclick="cm('mReg')">&times;</span></div><div class="modal-body"><label>Username *</label><input id="rU"><label>Nama *</label><input id="rN"><label>PIN *</label><input id="rP" type="password"><label>Konfirmasi</label><input id="rP2" type="password"><div id="roleW"><label>Role</label><select id="rR"><option value="user">User</option><option value="admin">Admin</option></select></div><button class="btn btn-primary" style="width:100%;margin-top:6px" onclick="doReg()">Simpan</button></div></div></div>
+
+<div id="mHelp" class="modal"><div class="modal-box"><div class="modal-head"><h3>🔥 Cara Aktifkan Sync Firebase (Gratis 2 Menit)</h3><span class="close" onclick="cm('mHelp')">&times;</span></div><div class="modal-body" style="font-size:12px;line-height:1.6">
+<b>Langkah 1:</b> Buka <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a> → Add Project → nama: cek-counter → Continue<br>
+<b>Langkah 2:</b> Build → Firestore Database → Create Database → Start in Test Mode → Lokasi asia-southeast2<br>
+<b>Langkah 3:</b> Project Settings (ikon gerigi) → Your Apps → Web </> → Register → Copy config seperti ini:<br>
+<pre style="background:#0f172a;color:#22c55e;padding:8px;border-radius:6px;font-size:10px;overflow:auto;margin:6px 0">const firebaseConfig = {
+  apiKey: "AIza...",
+  authDomain: "...",
+  projectId: "...",
+  ...
+};</pre>
+<b>Langkah 4:</b> Buka file index.html ini di Notepad, cari baris 24-31, ganti GANTI_API_KEY dll dengan config kamu, save, upload ulang ke GitHub ganti index.html lama.<br><br>
+<div style="background:#dcfce7;padding:8px;border-radius:8px"><b>Setelah aktif:</b> Semua HP tim yang login akan sinkron otomatis. Kalau tim input, di HP kamu langsung muncul tanpa refresh!</div>
+<button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="cm('mHelp')">Mengerti</button>
+</div></div></div>
+
+<div id="toast" class="toast"></div>
+<script>
+const KU='team_users_v7', KS='team_sess_v7';
+let users=JSON.parse(localStorage.getItem(KU)||'null')||[{id:'1',username:'admin',pin:'1234',nama:'Admin',role:'admin'},{id:'2',username:'staff1',pin:'1111',nama:'Staff Satu',role:'user'}];
+let mesin=[], invoices=[], cur=null, aktif=null, unsubMesin=null, unsubInv=null;
+function saveUsers(){localStorage.setItem(KU,JSON.stringify(users))}
+function toast(m){let t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2600)}
+function sm(id){document.getElementById(id).classList.add('active')}function cm(id){document.getElementById(id).classList.remove('active')}
+function fillDemo(){lUser.value='admin';lPin.value='1234'}
+function isFB(){return window._fb && window._fb.useFirebase && window._fb.db}
+function doLogin(){let u=lUser.value.trim().toLowerCase(),p=lPin.value.trim();let f=users.find(x=>x.username===u&&x.pin===p);if(!f){toast('Username/PIN salah');return}localStorage.setItem(KS,JSON.stringify(f));init()}
+function doLogout(){if(unsubMesin)unsubMesin();if(unsubInv)unsubInv();localStorage.removeItem(KS);location.reload()}
+function showReg(isAdmin){document.getElementById('roleW').style.display=(cur&&cur.role==='admin')?'block':'none';rU.value='';rN.value='';rP.value='';rP2.value='';sm('mReg')}
+function doReg(){let u=rU.value.trim().toLowerCase(),n=rN.value.trim(),p=rP.value.trim(),p2=rP2.value.trim(),rl=document.getElementById('rR').value;if(!u||!n||!p)return toast('Lengkapi');if(p!==p2)return toast('PIN beda');if(users.some(x=>x.username===u))return toast('Username ada');let role=(cur&&cur.role==='admin')?rl:'user';users.push({id:Date.now().toString(),username:u,pin:p,nama:n,role});saveUsers();cm('mReg');toast('User dibuat');renderFilters();if(cur)renderTeam()}
+function init(){let s=JSON.parse(localStorage.getItem(KS)||'null');if(!s){loginPage.classList.remove('hidden');appPage.classList.add('hidden');updateFBStatus();return}cur=s;loginPage.classList.add('hidden');appPage.classList.remove('hidden');hUser.textContent='@'+cur.username+' - '+cur.nama+' ('+cur.role.toUpperCase()+')';document.getElementById('tTeam').classList.toggle('hidden',cur.role!=='admin');renderFilters();startSync();renderTeam()}
+function updateFBStatus(){let el=document.getElementById('firebaseStatus');let ind=document.getElementById('syncIndicator');let txt=document.getElementById('syncText');let dot=document.querySelector('.sync-dot');if(isFB()){if(el){el.style.background='#dcfce7';el.style.color='#166534';el.innerHTML='✅ Firebase Terhubung - Sync Aktif! Tim akan sinkron real-time';} if(txt)txt.textContent='Live Sync ON'; if(dot){dot.classList.remove('sync-off');dot.classList.add('sync-on')} if(ind&&document.getElementById('sLive'))document.getElementById('sLive').textContent='Live';}else{if(el){el.style.background='#fef3c7';el.textContent='⚠️ Mode Lokal - Buat Firebase untuk sync tim'} if(txt)txt.textContent='Offline - Lokal'; if(dot){dot.classList.remove('sync-on');dot.classList.add('sync-off')} }}
+function startSync(){updateFBStatus();if(isFB()){const {db, collection, onSnapshot, query}=window._fb;try{unsubMesin=onSnapshot(collection(db,'machines'),snap=>{mesin=snap.docs.map(d=>({id:d.id,...d.data()}));renderMesin();renderTeam()});unsubInv=onSnapshot(collection(db,'invoices'),snap=>{invoices=snap.docs.map(d=>({id:d.id,...d.data()}));invoices.sort((a,b)=>(b.tanggalBuat?.seconds||0)-(a.tanggalBuat?.seconds||0));renderInv();renderMesin()});toast('Sync Live Aktif - Data tim terhubung');}catch(e){toast('Gagal sync: '+e.message);loadLocalFallback()}}else{loadLocalFallback()}}
+function loadLocalFallback(){mesin=JSON.parse(localStorage.getItem('mesin_v61')||'[]');invoices=JSON.parse(localStorage.getItem('invoice_v61')||'[]');renderMesin();renderInv()}
+function renderFilters(){let a=[fOwner,fOwnerInv];a.forEach(s=>{if(!s)return;let v=s.value;s.innerHTML='<option value="semua">Semua Tim</option>'+users.map(u=>`<option value="${u.username}">@${u.username} - ${u.nama}</option>`).join('');s.value=v||'semua'})}
+function sw(t){vMesin.classList.toggle('hidden',t!=='mesin');vInvoice.classList.toggle('hidden',t!=='invoice');vTeam.classList.toggle('hidden',t!=='team');tMesin.classList.toggle('active',t==='mesin');tInv.classList.toggle('active',t==='invoice');tTeam.classList.toggle('active',t==='team')}
+function getMesin(){let q=(qMesin.value||'').toLowerCase(),fo=fOwner.value;let l=[...mesin];if(cur.role!=='admin')l=l.filter(m=>m.owner===cur.username);else if(fo!=='semua')l=l.filter(m=>m.owner===fo);if(q)l=l.filter(m=>(m.nama+m.pj).toLowerCase().includes(q));return l}
+function renderMesin(){let tb=document.getElementById('tbMesin');let list=getMesin();let tp=0,tt=0;tb.innerHTML='';list.forEach(d=>{let pBW=d.counterBWSkrg!=null?d.counterBWSkrg-d.counterBWLalu:0;let pW=d.counterWarnaSkrg!=null?d.counterWarnaSkrg-d.counterWarnaLalu:0;tp+=Math.max(0,pBW)+Math.max(0,pW);let belum=invoices.filter(i=>i.mesinId===d.id&&i.status==='belum').reduce((s,i)=>s+i.total,0);tt+=belum;tb.innerHTML+=`<tr><td><span class="badge badge-blue">@${d.owner}</span></td><td><b>${d.nama}</b><br><small>PJ:${d.pj}</small></td><td><span class="badge badge-gray">BW ${d.counterBWLalu||0}→${d.counterBWSkrg??'-'}</span><br><span class="badge badge-purple">W ${d.counterWarnaLalu||0}→${d.counterWarnaSkrg??'-'}</span></td><td><small>Sewa ${ (d.sewa||0).toLocaleString()}<br>Free ${d.kuota||0}</small></td><td><small>SewaW ${ (d.sewaWarna||0).toLocaleString()}<br>FreeW ${d.kuotaWarna||0}<br>C ${d.biayaLebihWarna||0} P ${d.biayaLebihPrintWarna||0}</small></td><td><button class="btn btn-primary btn-sm" onclick="openCek('${d.id}')">Tagih</button><div style="margin-top:3px"><button class="btn btn-ghost btn-sm" onclick="editM('${d.id}')">Edit</button><button class="btn btn-red btn-sm" onclick="delM('${d.id}')">Hapus</button></div></td></tr>`});sMesin.textContent=list.length;sPakai.textContent=tp.toLocaleString();sTagih.textContent='Rp '+tt.toLocaleString('id-ID');if(!list.length)tb.innerHTML='<tr><td colspan=6 style="text-align:center;color:#94a3b8;padding:12px">Belum ada mesin (menunggu sync tim...)</td></tr>'}
+function openForm(){formTitle.textContent='Tambah Mesin';['fNama','fTelp','fPJ','fAlamat','fTipe','fSN','fBWLalu','fBWSkrg','fSewa','fKuota','fLebih','fWarnaLalu','fWarnaSkrg','fSewaW','fKuotaW','fLebihW','fLebihPrintW','fPPN','fBank','fNoRek','fAN'].forEach(id=>{let el=document.getElementById(id);if(el){if(id==='fSewa')el.value=500000;else if(id==='fKuota')el.value=2000;else if(id==='fLebih')el.value=250;else if(id==='fLebihW')el.value=500;else if(id==='fLebihPrintW')el.value=600;else if(id==='fPPN')el.value=11;else el.value=''}});fId.value='';fPPNpakai.value='tidak';sm('mForm')}
+async function saveForm(){let o={nama:fNama.value.trim(),telp:fTelp.value.trim(),pj:fPJ.value.trim(),alamat:fAlamat.value.trim(),tipe:fTipe.value.trim(),sn:fSN.value.trim(),counterBWLalu:Number(fBWLalu.value)||0,counterBWSkrg:fBWSkrg.value?Number(fBWSkrg.value):null,counterWarnaLalu:Number(fWarnaLalu.value)||0,counterWarnaSkrg:fWarnaSkrg.value?Number(fWarnaSkrg.value):null,sewa:Number(fSewa.value)||0,kuota:Number(fKuota.value)||0,lebih:Number(fLebih.value)||0,sewaWarna:Number(fSewaW.value)||0,kuotaWarna:Number(fKuotaW.value)||0,biayaLebihWarna:Number(fLebihW.value)||0,biayaLebihPrintWarna:Number(fLebihPrintW.value)||0,pakaiPPN:fPPNpakai.value,ppn:Number(fPPN.value)||0,bank:fBank.value.trim(),norek:fNoRek.value.trim(),an:fAN.value.trim(),owner:cur.username,updated:Date.now()};if(!o.nama||!o.telp||!o.pj)return alert('Nama Telp PJ wajib');if(isFB()){const {db, collection, addDoc, doc, setDoc}=window._fb;if(fId.value){await setDoc(doc(db,'machines',fId.value),o,{merge:true})}else{await addDoc(collection(db,'machines'),o)}}else{let id=fId.value||Date.now().toString();let i=mesin.findIndex(x=>x.id===id);if(i>=0)mesin[i]={...mesin[i],...o,id};else mesin.push({id,...o});localStorage.setItem('mesin_v61',JSON.stringify(mesin));renderMesin()}cm('mForm');toast('Mesin tersync ke semua tim!')}
+function editM(id){let d=mesin.find(x=>x.id===id);if(cur.role!=='admin'&&d.owner!==cur.username)return toast('Tidak boleh');fId.value=d.id;fNama.value=d.nama;fTelp.value=d.telp;fPJ.value=d.pj;fAlamat.value=d.alamat;fTipe.value=d.tipe;fSN.value=d.sn;fBWLalu.value=d.counterBWLalu;fBWSkrg.value=d.counterBWSkrg??'';fSewa.value=d.sewa;fKuota.value=d.kuota;fLebih.value=d.lebih;fWarnaLalu.value=d.counterWarnaLalu||0;fWarnaSkrg.value=d.counterWarnaSkrg??'';fSewaW.value=d.sewaWarna||0;fKuotaW.value=d.kuotaWarna||0;fLebihW.value=d.biayaLebihWarna||0;fLebihPrintW.value=d.biayaLebihPrintWarna||0;fPPNpakai.value=d.pakaiPPN||'tidak';fPPN.value=d.ppn||11;fBank.value=d.bank;fNoRek.value=d.norek;fAN.value=d.an;formTitle.textContent='Edit Mesin';sm('mForm')}
+async function delM(id){if(!confirm('Hapus mesin?'))return;if(isFB()){const {db, doc, deleteDoc}=window._fb;await deleteDoc(doc(db,'machines',id))}else{mesin=mesin.filter(x=>x.id!==id);localStorage.setItem('mesin_v61',JSON.stringify(mesin));renderMesin()}}
+let aktif=null;function openCek(id){let d=mesin.find(x=>x.id===id);aktif=id;cekInfo.textContent=`${d.nama} @${d.owner}`;cBWLalu.value=d.counterBWLalu||0;cBWSkrg.value='';cWLalu.value=d.counterWarnaLalu||0;cWSkrg.value='';prev.style.display='none';sm('mCek')}
+function calcPrev(){let bwL=Number(cBWLalu.value)||0,bwS=Number(cBWSkrg.value)||0,wL=Number(cWLalu.value)||0,wS=Number(cWSkrg.value)||0;if(!bwS&&!wS){prev.style.display='none';return null}let d=mesin.find(x=>x.id===aktif);let pakaiBW=Math.max(0,bwS-bwL),lebihBW=Math.max(0,pakaiBW-(d.kuota||0)),biayaBW=lebihBW*(d.lebih||0);let pakaiW=Math.max(0,wS-wL),lebihW=Math.max(0,pakaiW-(d.kuotaWarna||0)),biayaW=lebihW*(d.biayaLebihWarna||0);let sub=(d.sewa||0)+(d.sewaWarna||0)+biayaBW+biayaW;let ppn=d.pakaiPPN==='ya'?Math.round(sub*(d.ppn||0)/100):0,tot=sub+ppn;prev.style.display='block';prev.innerHTML=`BW ${pakaiBW} lbr Lebih ${lebihBW} Rp ${biayaBW.toLocaleString()}<br>Warna ${pakaiW} lbr Lebih ${lebihW} Rp ${biayaW.toLocaleString()}<br>Sub Rp ${sub.toLocaleString()} PPN Rp ${ppn.toLocaleString()}<br><b>TOTAL Rp ${tot.toLocaleString()}</b>`;return{pakaiBW,lebihBW,biayaBW,pakaiW,lebihW,biayaW,sub,ppn,tot,bwL,bwS,wL,wS}}
+['cBWSkrg','cBWLalu','cWSkrg','cWLalu'].forEach(id=>{let e=document.getElementById(id);if(e)e.addEventListener('input',calcPrev)})
+async function makeInv(){let d=mesin.find(x=>x.id===aktif);let c=calcPrev();if(!c)return alert('Isi counter');let periode=new Date().toLocaleDateString('id-ID',{month:'long',year:'numeric'});let inv={mesinId:d.id,nama:d.nama,telp:d.telp,pj:d.pj,tipe:d.tipe,sn:d.sn,counterBWLalu:c.bwL,counterBWSkrg:c.bwS,pakaiBW:c.pakaiBW,lebihBW:c.lebihBW,biayaLebihBW:c.biayaBW,counterWarnaLalu:c.wL,counterWarnaSkrg:c.wS,pakaiWarna:c.pakaiW,lebihWarna:c.lebihW,biayaLebihWarna:c.biayaW,sewa:d.sewa,sewaWarna:d.sewaWarna,kuota:d.kuota,kuotaWarna:d.kuotaWarna,biayaLebih:d.lebih,biayaLebihPrintWarna:d.biayaLebihPrintWarna,subtotal:c.sub,persenPPN:d.ppn||0,nominalPPN:c.ppn,pakaiPPN:d.pakaiPPN==='ya',total:c.tot,periode,status:'belum',sudahCetak:false,tanggalBayar:null,tanggalCetak:null,owner:d.owner,createdBy:cur.username,bank:d.bank,norek:d.norek,an:d.an,tanggalBuat: isFB()? window._fb.serverTimestamp() : new Date().toISOString()};if(isFB()){const {db, collection, addDoc, doc, updateDoc}=window._fb;await addDoc(collection(db,'invoices'),inv);await updateDoc(doc(db,'machines',d.id),{counterBWLalu:c.bwS||d.counterBWLalu,counterBWSkrg:null,counterWarnaLalu:c.wS||d.counterWarnaLalu,counterWarnaSkrg:null,updated:Date.now()})}else{inv.id=Date.now().toString();inv.tanggalBuat=new Date().toISOString();invoices.unshift(inv);d.counterBWLalu=c.bwS||d.counterBWLalu;d.counterWarnaLalu=c.wS||d.counterWarnaLalu;localStorage.setItem('invoice_v61',JSON.stringify(invoices));localStorage.setItem('mesin_v61',JSON.stringify(mesin));renderInv();renderMesin()}cm('mCek');toast('Invoice tersync! Tim bisa lihat langsung')}
+function renderInv(){let tb=document.getElementById('tbInv');let fs=fStatus.value,fp=fPrint.value,fo=fOwnerInv.value;let list=[...invoices];if(cur.role!=='admin')list=list.filter(x=>x.owner===cur.username);else if(fo!=='semua')list=list.filter(x=>x.owner===fo);if(fs!=='semua')list=list.filter(x=>x.status===fs);if(fp==='sudah_cetak')list=list.filter(x=>x.sudahCetak);if(fp==='belum_cetak')list=list.filter(x=>!x.sudahCetak);tb.innerHTML='';list.forEach(inv=>{let tgl=inv.tanggalBuat?.seconds?new Date(inv.tanggalBuat.seconds*1000).toLocaleDateString('id-ID'):new Date(inv.tanggalBuat).toLocaleDateString('id-ID');tb.innerHTML+=`<tr><td>${tgl}<br><small>${inv.periode}</small></td><td><span class="badge badge-blue">@${inv.owner}</span></td><td><b>${inv.nama}</b></td><td><span class="badge badge-gray">BW ${inv.pakaiBW||0}</span> <span class="badge badge-purple">W ${inv.pakaiWarna||0}</span></td><td><b>Rp ${(inv.total||0).toLocaleString('id-ID')}</b></td><td>${inv.status==='lunas'?`<span class="badge badge-green">LUNAS</span>`:`<span class="badge badge-red">BELUM</span>`}<br><button class="btn btn-ghost btn-sm" onclick="toggleBayar('${inv.id}')">Toggle</button></td><td>${inv.sudahCetak?`<span class="badge badge-green">CETAK</span>`:`<span class="badge badge-red">BELUM</span>`}<br><button class="btn ${inv.sudahCetak?'btn-ghost':'btn-orange'} btn-sm" onclick="toggleCetak('${inv.id}')">${inv.sudahCetak?'Batal':'Cetak'}</button></td><td><button class="btn btn-primary btn-sm" onclick="showDetail('${inv.id}')">Lihat</button></td></tr>`});if(!list.length)tb.innerHTML='<tr><td colspan=8 style="text-align:center;color:#94a3b8;padding:12px">Belum ada invoice sync</td></tr>'}
+async function toggleBayar(id){if(isFB()){const {db, doc, updateDoc}=window._fb;let inv=invoices.find(x=>x.id===id);let ns=inv.status==='belum'?'lunas':'belum';await updateDoc(doc(db,'invoices',id),{status:ns,tanggalBayar:ns==='lunas'?new Date().toISOString():null})}else{let i=invoices.findIndex(x=>x.id===id);invoices[i].status=invoices[i].status==='belum'?'lunas':'belum';localStorage.setItem('invoice_v61',JSON.stringify(invoices));renderInv()}}
+async function toggleCetak(id){if(isFB()){const {db, doc, updateDoc}=window._fb;let inv=invoices.find(x=>x.id===id);await updateDoc(doc(db,'invoices',id),{sudahCetak:!inv.sudahCetak,tanggalCetak:!inv.sudahCetak?new Date().toISOString():null})}else{let i=invoices.findIndex(x=>x.id===id);invoices[i].sudahCetak=!invoices[i].sudahCetak;localStorage.setItem('invoice_v61',JSON.stringify(invoices));renderInv()}}
+function showDetail(id){let d=invoices.find(x=>x.id===id);if(!d)return;let tgl=d.tanggalBuat?.seconds?new Date(d.tanggalBuat.seconds*1000).toLocaleDateString('id-ID'):new Date(d.tanggalBuat).toLocaleDateString('id-ID');document.getElementById('detailBox').innerHTML=`<div style="text-align:center"><h2 style="color:#1e3a8a">INVOICE</h2><small>${d.periode} • ${tgl} • @${d.owner}</small><div style="margin:6px">${d.status==='lunas'?'<span class="badge badge-green">LUNAS</span>':'<span class="badge badge-red">BELUM</span>'} ${d.sudahCetak?'<span class="badge badge-green">SUDAH CETAK</span>':'<span class="badge badge-red">BELUM CETAK</span>'}</div></div><div class="line"><span>Pelanggan</span><b>${d.nama}</b></div><div class="line"><span>BW</span><span>${d.counterBWLalu}→${d.counterBWSkrg}=${d.pakaiBW}</span></div><div class="line"><span>Warna</span><span>${d.counterWarnaLalu}→${d.counterWarnaSkrg}=${d.pakaiWarna}</span></div><hr style="margin:6px 0"><div class="line"><span>Total</span><b>Rp ${(d.total||0).toLocaleString('id-ID')}</b></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px"><button class="btn btn-green" onclick="toggleBayar('${d.id}')">Toggle Bayar</button><button class="btn btn-orange" onclick="toggleCetak('${d.id}')">Toggle Cetak</button></div>`;sm('mDetail')}
+function renderTeam(){let tb=document.getElementById('tbTeam');if(!tb)return;tb.innerHTML='';users.forEach(u=>{let jM=mesin.filter(m=>m.owner===u.username).length;let jI=invoices.filter(i=>i.owner===u.username).length;let tagih=invoices.filter(i=>i.owner===u.username&&i.status==='belum').reduce((s,i)=>s+i.total,0);tb.innerHTML+=`<tr><td>@${u.username}</td><td>${u.nama}</td><td><span class="badge ${u.role==='admin'?'badge-amber':'badge-blue'}">${u.role}</span></td><td>${jM}</td><td>${jI}</td><td>Rp ${tagih.toLocaleString('id-ID')}</td><td><button class="btn btn-ghost btn-sm" onclick="resetPin('${u.id}')">PIN</button><button class="btn btn-red btn-sm" onclick="delUser('${u.id}')">Hapus</button></td></tr>`})}
+function resetPin(id){let u=users.find(x=>x.id===id);let np=prompt('PIN baru @'+u.username+':','1234');if(!np)return;u.pin=np;saveUsers();toast('PIN update')}
+function delUser(id){if(!confirm('Hapus?'))return;users=users.filter(x=>x.id!==id);saveUsers();renderTeam();renderFilters()}
+function exportCSV(){let list=cur.role==='admin'?invoices:invoices.filter(i=>i.owner===cur.username);let h='Periode,Nama,Owner,BW,Warna,Total,Status,Cetak\n';let csv=h;list.forEach(d=>{csv+=`"${d.periode}","${d.nama}","${d.owner}",${d.pakaiBW||0},${d.pakaiWarna||0},${d.total},${d.status},${d.sudahCetak?'SUDAH':'BELUM'}\n`});let b=new Blob([csv],{type:'text/csv'});let a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='invoice-sync.csv';a.click()}
+function showFirebaseHelp(){sm('mHelp')}
+init();
+</script>
+
+<script>
+// SHIM agar kode lama yang pakai window._fb tetap jalan dengan compat
+window._fb = {
+  db: db,
+  collection: (d,n)=>d.collection(n),
+  doc: (d,c,id)=>d.collection(c).doc(id),
+  addDoc: (colRef,data)=>colRef.add(data),
+  setDoc: (docRef,data)=>docRef.set(data),
+  updateDoc: (docRef,data)=>docRef.update(data),
+  deleteDoc: (docRef)=>docRef.delete(),
+  onSnapshot: (ref,cb)=>ref.onSnapshot(snap=>{ 
+    // buat format mirip modular: snap.docs.map
+    cb(snap);
+  }),
+  serverTimestamp: ()=> firebase.firestore.FieldValue.serverTimestamp(),
+  useFirebase: true
+};
+// Override isFB tetap true
+function isFB(){return true}
+</script>
+</body></html>
